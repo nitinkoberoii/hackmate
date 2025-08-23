@@ -1,107 +1,220 @@
-# React
+# HackMate 🚀
 
-A modern React-based project utilizing the latest frontend technologies and tools for building responsive web applications.
+A comprehensive hackathon management platform that connects developers, facilitates team formation, and provides skill assessment tools for collaborative coding projects.
 
-## 🚀 Features
+## ✨ Core Features
 
-- **React 18** - React version with improved rendering and concurrent features
-- **Vite** - Lightning-fast build tool and development server
-- **Redux Toolkit** - State management with simplified Redux setup
-- **TailwindCSS** - Utility-first CSS framework with extensive customization
-- **React Router v6** - Declarative routing for React applications
-- **Data Visualization** - Integrated D3.js and Recharts for powerful data visualization
-- **Form Management** - React Hook Form for efficient form handling
-- **Animation** - Framer Motion for smooth UI animations
-- **Testing** - Jest and React Testing Library setup
+### 🏆 Hackathon Management
+
+- **Browse & Discover**: Explore featured hackathons with advanced filtering and search
+- **Team Formation**: Find teammates based on skills, experience, and availability
+- **Project Collaboration**: Manage team projects with real-time communication tools
+
+### 👥 Team Management
+
+- **Member Management**: Add, remove, and manage team members
+- **Project Details**: Track project progress and milestones
+- **Team Communication**: Built-in chat and collaboration tools
+
+### 🧠 Skill Assessment
+
+- **Interactive Quizzes**: Test your technical skills across various domains
+- **GitHub Integration**: Connect your GitHub profile for skill verification
+- **Progress Tracking**: Monitor your learning journey with detailed analytics
+- **Skill Radar Charts**: Visual representation of your skill strengths
+
+### 👤 User Experience
+
+- **Personal Dashboard**: Track achievements, active hackathons, and deadlines
+- **Smart Recommendations**: Get personalized hackathon and teammate suggestions
+- **Achievement System**: Earn badges and track your hackathon journey
+- **Notification Center**: Stay updated with real-time alerts and invitations
+
+## 🛠️ Tech Stack
+
+### Frontend
+
+- **React 18** - Modern React with concurrent features
+- **Vite** - Lightning-fast build tool and dev server
+- **Tailwind CSS** - Utility-first CSS framework
+- **React Router v6** - Declarative routing
+- **Responsive Design** - Mobile-first approach with scrollable layouts
+
+### Backend
+
+- **Node.js** - JavaScript runtime
+- **Express.js** - Web application framework
+- **MongoDB** - NoSQL database (via Mongoose)
+- **RESTful API** - Clean API architecture
 
 ## 📋 Prerequisites
 
-- Node.js (v14.x or higher)
-- npm or yarn
+- **Node.js** (v16.x or higher)
+- **npm** or **yarn**
+- **MongoDB** (local installation or MongoDB Atlas)
 
-## 🛠️ Installation
+## 🚀 Getting Started
 
-1. Install dependencies:
-   ```bash
-   npm install
-   # or
-   yarn install
-   ```
-   
-2. Start the development server:
-   ```bash
-   npm start
-   # or
-   yarn start
-   ```
+### 1. Clone the Repository
+
+```bash
+git clone <repository-url>
+cd hackmate
+```
+
+### 2. Install Dependencies
+
+#### Frontend Dependencies
+
+```bash
+npm install
+# or
+yarn install
+```
+
+#### Backend Dependencies
+
+```bash
+cd backend
+npm install
+cd ..
+```
+
+### 3. Environment Setup
+
+Create a `.env` file in the backend directory:
+
+```bash
+cd backend
+# Create .env file with your MongoDB connection string
+echo "MONGODB_URI=mongodb://localhost:27017/hackmate" > .env
+cd ..
+```
+
+### 4. Start the Backend Server
+
+```bash
+cd backend
+npm start
+# or
+node server.js
+```
+
+**Backend Server**: http://localhost:5000
+
+### 5. Start the Frontend Development Server
+
+In a new terminal:
+
+```bash
+npm run dev
+# or
+yarn dev
+```
+
+**Frontend Server**: http://localhost:5173
 
 ## 📁 Project Structure
 
 ```
-react_app/
-├── public/             # Static assets
+hackmate/
+├── backend/                    # Backend server
+│   ├── controllers/           # API controllers
+│   ├── models/               # Database models
+│   ├── routes/               # API routes
+│   └── server.js             # Server entry point
 ├── src/
-│   ├── components/     # Reusable UI components
-│   ├── pages/          # Page components
-│   ├── styles/         # Global styles and Tailwind configuration
-│   ├── App.jsx         # Main application component
-│   ├── Routes.jsx      # Application routes
-│   └── index.jsx       # Application entry point
-├── .env                # Environment variables
-├── index.html          # HTML template
-├── package.json        # Project dependencies and scripts
-├── tailwind.config.js  # Tailwind CSS configuration
-└── vite.config.js      # Vite configuration
+│   ├── components/           # Reusable UI components
+│   │   ├── ui/              # Base UI components
+│   │   └── ...              # Feature-specific components
+│   ├── pages/               # Page components
+│   │   ├── hackathon-browse/    # Hackathon discovery
+│   │   ├── skill-assessment-quiz/ # Skill testing
+│   │   ├── team-management/      # Team collaboration
+│   │   ├── teammate-finder/      # Team formation
+│   │   ├── user-dashboard/       # User overview
+│   │   └── user-registration/    # User onboarding
+│   ├── styles/              # Global styles and Tailwind
+│   ├── utils/               # Utility functions
+│   ├── App.jsx              # Main application component
+│   └── Routes.jsx           # Application routing
+├── public/                  # Static assets
+├── package.json             # Frontend dependencies
+└── tailwind.config.js       # Tailwind CSS configuration
 ```
 
-## 🧩 Adding Routes
+## 🔧 Available Scripts
 
-To add new routes to the application, update the `Routes.jsx` file:
+### Frontend
 
-```jsx
-import { useRoutes } from "react-router-dom";
-import HomePage from "pages/HomePage";
-import AboutPage from "pages/AboutPage";
-
-const ProjectRoutes = () => {
-  let element = useRoutes([
-    { path: "/", element: <HomePage /> },
-    { path: "/about", element: <AboutPage /> },
-    // Add more routes as needed
-  ]);
-
-  return element;
-};
+```bash
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run preview      # Preview production build
 ```
 
-## 🎨 Styling
+### Backend
 
-This project uses Tailwind CSS for styling. The configuration includes:
+```bash
+cd backend
+npm start            # Start production server
+npm run dev          # Start development server with nodemon
+```
 
-- Forms plugin for form styling
-- Typography plugin for text styling
-- Aspect ratio plugin for responsive elements
-- Container queries for component-specific responsive design
-- Fluid typography for responsive text
-- Animation utilities
+## 🌐 API Endpoints
 
-## 📱 Responsive Design
+The backend provides RESTful APIs for:
 
-The app is built with responsive design using Tailwind CSS breakpoints.
+- **Hackathons**: CRUD operations for hackathon management
+- **Users**: User registration, authentication, and profiles
+- **Teams**: Team creation, management, and collaboration
+- **Skills**: Skill assessment and verification
 
+## 🎨 Design System
 
-## 📦 Deployment
+- **Color Palette**: Primary (#C778DD), gray, dark background, white
+- **Responsive Layout**: Scrollable single-page design
+- **Component Architecture**: Modular, reusable components
+- **Mobile-First**: Optimized for all device sizes
 
-Build the application for production:
+## 📱 Key Pages
+
+1. **Hackathon Browse** - Discover and filter hackathons
+2. **Skill Assessment Quiz** - Test your technical skills
+3. **Team Management** - Collaborate with your team
+4. **Teammate Finder** - Find the perfect teammates
+5. **User Dashboard** - Your hackathon journey overview
+6. **User Registration** - Join the platform
+
+## 🚀 Deployment
+
+### Frontend
 
 ```bash
 npm run build
+# Deploy the dist/ folder to your hosting service
 ```
 
-## 🙏 Acknowledgments
+### Backend
 
-- Built with [Rocket.new](https://rocket.new)
-- Powered by React and Vite
-- Styled with Tailwind CSS
+```bash
+cd backend
+npm start
+# Deploy to your preferred hosting service (Heroku, AWS, etc.)
+```
 
-Built with ❤️ on Rocket.new
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+---
+
+Built with ❤️ for the hackathon community
