@@ -16,6 +16,10 @@ import LoadingGrid from './components/LoadingGrid';
 const HackathonBrowse = () => {
   const location = useLocation();
   
+  // API Configuration
+  const BASE_URL = 'http://localhost:5000';
+  const API_ENDPOINT = `${BASE_URL}/api/hackathons`;
+  
   // State management
   const [searchQuery, setSearchQuery] = useState('');
   const [searchSuggestions, setSearchSuggestions] = useState([]);
@@ -28,6 +32,7 @@ const HackathonBrowse = () => {
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
+  const [error, setError] = useState(null);
 
   // Mock user data
   const mockUser = {
@@ -47,160 +52,6 @@ const HackathonBrowse = () => {
     teams: 2
   };
 
-  // Mock featured hackathons data
-  const mockFeaturedHackathons = [
-    {
-      id: 1,
-      title: "Global Climate Tech Challenge 2025",
-      organizer: "TechForGood Foundation",
-      description: "Build innovative solutions to combat climate change and create a sustainable future for our planet.",
-      image: "https://images.unsplash.com/photo-1569163139394-de4e4f43e4e3?w=800&h=400&fit=crop",
-      startDate: "2025-01-15",
-      endDate: "2025-01-17",
-      prizePool: "$50,000",
-      teamSize: { min: 2, max: 5 },
-      status: "Open",
-      featured: true
-    },
-    {
-      id: 2,
-      title: "AI Healthcare Innovation Hackathon",
-      organizer: "MedTech Innovations",
-      description: "Revolutionize healthcare with AI-powered solutions that improve patient outcomes and accessibility.",
-      image: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=800&h=400&fit=crop",
-      startDate: "2025-01-22",
-      endDate: "2025-01-24",
-      prizePool: "$75,000",
-      teamSize: { min: 3, max: 6 },
-      status: "Open",
-      featured: true
-    }
-  ];
-
-  // Mock hackathons data
-  const mockHackathons = [
-    {
-      id: 3,
-      title: "FinTech Revolution 2025",
-      organizer: "Digital Banking Corp",
-      description: "Create the next generation of financial technology solutions that democratize access to financial services.",
-      image: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=400&h=300&fit=crop",
-      startDate: "2025-01-20",
-      endDate: "2025-01-22",
-      duration: "48 hours",
-      theme: "Financial Technology",
-      prizePool: "$25,000",
-      teamSize: { min: 2, max: 4 },
-      location: "Virtual",
-      status: "Open",
-      registrations: 156,
-      maxParticipants: 200,
-      requiredSkills: ["JavaScript", "React", "Node.js", "Blockchain", "UI/UX"],
-      compatibilityScore: 85,
-      isBookmarked: false
-    },
-    {
-      id: 4,
-      title: "EdTech Innovation Challenge",
-      organizer: "Learning Future Institute",
-      description: "Transform education through technology and create engaging learning experiences for students worldwide.",
-      image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&h=300&fit=crop",
-      startDate: "2025-01-25",
-      endDate: "2025-01-27",
-      duration: "48 hours",
-      theme: "Education Technology",
-      prizePool: "$30,000",
-      teamSize: { min: 3, max: 5 },
-      location: "Hybrid",
-      status: "Open",
-      registrations: 89,
-      maxParticipants: 150,
-      requiredSkills: ["Python", "AI/ML", "React", "Mobile Dev", "Data Science"],
-      compatibilityScore: 72,
-      isBookmarked: true
-    },
-    {
-      id: 5,
-      title: "Smart City Solutions Hackathon",
-      organizer: "Urban Tech Alliance",
-      description: "Design intelligent solutions for modern cities that improve quality of life and sustainability.",
-      image: "https://images.unsplash.com/photo-1480714378408-67cf0d13bc1f?w=400&h=300&fit=crop",
-      startDate: "2025-02-01",
-      endDate: "2025-02-03",
-      duration: "48 hours",
-      theme: "Smart Cities",
-      prizePool: "$40,000",
-      teamSize: { min: 2, max: 6 },
-      location: "In-Person",
-      status: "Open",
-      registrations: 234,
-      maxParticipants: 300,
-      requiredSkills: ["IoT", "Python", "React", "DevOps", "Data Analytics"],
-      compatibilityScore: 68,
-      isBookmarked: false
-    },
-    {
-      id: 6,
-      title: "Gaming Innovation Weekend",
-      organizer: "GameDev Studios",
-      description: "Create the next breakthrough in gaming technology and interactive entertainment experiences.",
-      image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=400&h=300&fit=crop",
-      startDate: "2025-02-08",
-      endDate: "2025-02-09",
-      duration: "24 hours",
-      theme: "Gaming & Entertainment",
-      prizePool: "$15,000",
-      teamSize: { min: 2, max: 4 },
-      location: "Virtual",
-      status: "Closing Soon",
-      registrations: 178,
-      maxParticipants: 180,
-      requiredSkills: ["Unity", "C#", "JavaScript", "3D Modeling", "Game Design"],
-      compatibilityScore: 45,
-      isBookmarked: false
-    },
-    {
-      id: 7,
-      title: "Blockchain for Social Good",
-      organizer: "Crypto Impact Foundation",
-      description: "Leverage blockchain technology to solve real-world social problems and create positive impact.",
-      image: "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=400&h=300&fit=crop",
-      startDate: "2025-02-12",
-      endDate: "2025-02-14",
-      duration: "48 hours",
-      theme: "Social Impact",
-      prizePool: "$35,000",
-      teamSize: { min: 3, max: 5 },
-      location: "Virtual",
-      status: "Open",
-      registrations: 67,
-      maxParticipants: 120,
-      requiredSkills: ["Solidity", "Web3", "React", "Node.js", "Smart Contracts"],
-      compatibilityScore: 91,
-      isBookmarked: true
-    },
-    {
-      id: 8,
-      title: "Mobile App Innovation Challenge",
-      organizer: "AppDev Collective",
-      description: "Build innovative mobile applications that solve everyday problems and enhance user experiences.",
-      image: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=400&h=300&fit=crop",
-      startDate: "2025-02-18",
-      endDate: "2025-02-20",
-      duration: "48 hours",
-      theme: "Mobile Technology",
-      prizePool: "$20,000",
-      teamSize: { min: 2, max: 4 },
-      location: "Hybrid",
-      status: "Open",
-      registrations: 145,
-      maxParticipants: 200,
-      requiredSkills: ["React Native", "Flutter", "Swift", "Kotlin", "UI/UX"],
-      compatibilityScore: 78,
-      isBookmarked: false
-    }
-  ];
-
   // Mock search suggestions
   const mockSearchSuggestions = [
     { text: "AI Healthcare", type: "theme", description: "Healthcare technology hackathons", count: 12 },
@@ -210,16 +61,42 @@ const HackathonBrowse = () => {
     { text: "Blockchain", type: "skill", description: "Distributed ledger technology", count: 23 }
   ];
 
+  // Fetch hackathons from API
+  const fetchHackathons = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const response = await fetch(API_ENDPOINT);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // Separate featured and regular hackathons
+      const featured = data.filter(hackathon => hackathon.featured === true);
+      const regular = data.filter(hackathon => hackathon.featured !== true);
+      
+      setFeaturedHackathons(featured);
+      setHackathons(regular);
+      
+    } catch (error) {
+      console.error('Error fetching hackathons:', error);
+      setError('Failed to load hackathons. Please try again later.');
+      
+      // Fallback to empty arrays
+      setFeaturedHackathons([]);
+      setHackathons([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [API_ENDPOINT]);
+
   // Initialize data
   useEffect(() => {
-    setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setFeaturedHackathons(mockFeaturedHackathons);
-      setHackathons(mockHackathons);
-      setIsLoading(false);
-    }, 1000);
-  }, []);
+    fetchHackathons();
+  }, [fetchHackathons]);
 
   // Handle search
   const handleSearch = useCallback((query) => {
@@ -294,6 +171,11 @@ const HackathonBrowse = () => {
     setViewMode(prev => prev === 'grid' ? 'list' : 'grid');
   };
 
+  // Handle retry on error
+  const handleRetry = () => {
+    fetchHackathons();
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -338,8 +220,29 @@ const HackathonBrowse = () => {
             />
           </div>
 
+          {/* Error State */}
+          {error && (
+            <div className="mb-8 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <Icon name="AlertCircle" size={20} className="text-destructive" />
+                  <span className="text-destructive font-medium">{error}</span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRetry}
+                  iconName="RotateCcw"
+                  iconPosition="left"
+                >
+                  Retry
+                </Button>
+              </div>
+            </div>
+          )}
+
           {/* Featured Hackathons */}
-          {!isLoading && featuredHackathons?.length > 0 && (
+          {!isLoading && !error && featuredHackathons?.length > 0 && (
             <FeaturedCarousel featuredHackathons={featuredHackathons} />
           )}
 
@@ -388,7 +291,7 @@ const HackathonBrowse = () => {
               {isLoading && page === 1 && <LoadingGrid count={9} />}
 
               {/* Hackathons Display */}
-              {!isLoading && hackathons?.length > 0 && (
+              {!isLoading && !error && hackathons?.length > 0 && (
                 <div className="transition-all duration-300 ease-in-out">
                   {/* Grid View */}
                   {viewMode === 'grid' && (
@@ -421,7 +324,7 @@ const HackathonBrowse = () => {
               )}
 
               {/* Load More */}
-              {!isLoading && hasMore && hackathons?.length > 0 && (
+              {!isLoading && !error && hasMore && hackathons?.length > 0 && (
                 <div className="text-center">
                   <Button
                     variant="outline"
@@ -448,22 +351,25 @@ const HackathonBrowse = () => {
               )}
 
               {/* No Results */}
-              {!isLoading && hackathons?.length === 0 && (
+              {!isLoading && !error && hackathons?.length === 0 && (
                 <div className="text-center py-12">
                   <Icon name="SearchX" size={48} className="text-muted-foreground mx-auto mb-4" />
                   <h3 className="text-lg font-semibold text-foreground mb-2">
                     No hackathons found
                   </h3>
                   <p className="text-muted-foreground mb-6">
-                    Try adjusting your search criteria or filters to find more results.
+                    {featuredHackathons?.length > 0 
+                      ? "There are no regular hackathons available at the moment, but check out our featured events above!"
+                      : "No hackathons are currently available. Please check back later."
+                    }
                   </p>
                   <Button
                     variant="outline"
-                    onClick={handleClearAllFilters}
+                    onClick={handleRetry}
                     iconName="RotateCcw"
                     iconPosition="left"
                   >
-                    Clear All Filters
+                    Refresh
                   </Button>
                 </div>
               )}

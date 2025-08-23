@@ -38,11 +38,27 @@ const FeaturedCarousel = ({ featuredHackathons }) => {
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString)?.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
+    if (!dateString) return 'TBD';
+    
+    try {
+      return new Date(dateString)?.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'TBD';
+    }
+  };
+
+  // Get default image if none provided
+  const getImageUrl = (hackathon) => {
+    if (hackathon?.image) {
+      return hackathon.image;
+    }
+    // Return a default placeholder image
+    return 'https://images.unsplash.com/photo-1569163139394-de4e4f43e4e3?w=800&h=400&fit=crop';
   };
 
   if (!featuredHackathons || featuredHackathons?.length === 0) {
@@ -56,8 +72,8 @@ const FeaturedCarousel = ({ featuredHackathons }) => {
       {/* Main Carousel Content */}
       <div className="relative h-80 md:h-96">
         <Image
-          src={currentHackathon?.image}
-          alt={currentHackathon?.title}
+          src={getImageUrl(currentHackathon)}
+          alt={currentHackathon?.title || 'Featured Hackathon'}
           className="w-full h-full object-cover"
         />
         
@@ -73,21 +89,21 @@ const FeaturedCarousel = ({ featuredHackathons }) => {
                 Featured
               </span>
               <span className="px-3 py-1 bg-success/20 text-success rounded-full text-sm font-medium">
-                {currentHackathon?.status}
+                {currentHackathon?.status || 'Open'}
               </span>
             </div>
 
             {/* Title and Organizer */}
             <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-2 line-clamp-2">
-              {currentHackathon?.title}
+              {currentHackathon?.title || 'Hackathon Title'}
             </h2>
             <p className="text-white/80 text-lg mb-4">
-              by {currentHackathon?.organizer}
+              by {currentHackathon?.organizer || 'Organizer'}
             </p>
 
             {/* Description */}
             <p className="text-white/90 text-base md:text-lg mb-6 line-clamp-2">
-              {currentHackathon?.description}
+              {currentHackathon?.description || 'No description available'}
             </p>
 
             {/* Stats */}
@@ -98,21 +114,25 @@ const FeaturedCarousel = ({ featuredHackathons }) => {
                   {formatDate(currentHackathon?.startDate)} - {formatDate(currentHackathon?.endDate)}
                 </span>
               </div>
-              <div className="flex items-center space-x-2 text-white">
-                <Icon name="Trophy" size={18} />
-                <span className="font-medium">{currentHackathon?.prizePool}</span>
-              </div>
-              <div className="flex items-center space-x-2 text-white">
-                <Icon name="Users" size={18} />
-                <span className="font-medium">
-                  {currentHackathon?.teamSize?.min}-{currentHackathon?.teamSize?.max} members
-                </span>
-              </div>
+              {currentHackathon?.prizePool && (
+                <div className="flex items-center space-x-2 text-white">
+                  <Icon name="Trophy" size={18} />
+                  <span className="font-medium">{currentHackathon.prizePool}</span>
+                </div>
+              )}
+              {currentHackathon?.teamSize && (
+                <div className="flex items-center space-x-2 text-white">
+                  <Icon name="Users" size={18} />
+                  <span className="font-medium">
+                    {currentHackathon.teamSize.min}-{currentHackathon.teamSize.max} members
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-3">
-              <Link to={`/hackathon/${currentHackathon?.id}`}>
+              <Link to={`/hackathon/${currentHackathon?._id || currentHackathon?.id}`}>
                 <Button
                   variant="default"
                   size="lg"

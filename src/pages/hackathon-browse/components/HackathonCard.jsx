@@ -11,7 +11,9 @@ const HackathonCard = ({ hackathon, onBookmark, viewMode = 'grid' }) => {
     e?.preventDefault();
     e?.stopPropagation();
     setIsBookmarked(!isBookmarked);
-    onBookmark(hackathon?.id, !isBookmarked);
+    // Handle both MongoDB ObjectId and regular id
+    const hackathonId = hackathon?._id || hackathon?.id;
+    onBookmark(hackathonId, !isBookmarked);
   };
 
   const getStatusColor = (status) => {
@@ -30,29 +32,50 @@ const HackathonCard = ({ hackathon, onBookmark, viewMode = 'grid' }) => {
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString)?.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
+    if (!dateString) return 'TBD';
+    
+    try {
+      return new Date(dateString)?.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'TBD';
+    }
+  };
+
+  // Get default image if none provided
+  const getImageUrl = (hackathon) => {
+    if (hackathon?.image) {
+      return hackathon.image;
+    }
+    // Return a default placeholder image
+    return 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=400&h=300&fit=crop';
+  };
+
+  // Get hackathon ID (handle both MongoDB ObjectId and regular id)
+  const getHackathonId = (hackathon) => {
+    return hackathon?._id || hackathon?.id;
   };
 
   return (
-    <Link to={`/hackathon/${hackathon?.id}`} className="block group h-full">
+    <Link to={`/hackathon/${getHackathonId(hackathon)}`} className="block group h-full">
       {viewMode === 'grid' ? (
         // Grid View Layout
         <div className="bg-card border border-border rounded-xl shadow-elevation-1 hover:shadow-elevation-2 transition-all duration-200 hover-scale overflow-hidden h-full flex flex-col">
           {/* Header Image */}
           <div className="relative h-44 sm:h-48 md:h-52 overflow-hidden">
             <Image
-              src={hackathon?.image}
-              alt={hackathon?.title}
+              src={getImageUrl(hackathon)}
+              alt={hackathon?.title || 'Hackathon'}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
             <div className="absolute top-3 left-3 right-3 flex justify-between items-start">
               <div className="flex flex-wrap gap-2">
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(hackathon?.status)}`}>
-                  {hackathon?.status}
+                  {hackathon?.status || 'Open'}
                 </span>
                 {hackathon?.featured && (
                   <span className="px-2 py-1 rounded-full text-xs font-medium bg-accent text-accent-foreground">
@@ -79,9 +102,11 @@ const HackathonCard = ({ hackathon, onBookmark, viewMode = 'grid' }) => {
                     {formatDate(hackathon?.startDate)} - {formatDate(hackathon?.endDate)}
                   </span>
                 </div>
-                <div className="bg-black/50 backdrop-blur-sm rounded-full px-3 py-1">
-                  <span className="text-sm font-medium">{hackathon?.duration}</span>
-                </div>
+                {hackathon?.duration && (
+                  <div className="bg-black/50 backdrop-blur-sm rounded-full px-3 py-1">
+                    <span className="text-sm font-medium">{hackathon.duration}</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -91,10 +116,10 @@ const HackathonCard = ({ hackathon, onBookmark, viewMode = 'grid' }) => {
             {/* Title and Organization */}
             <div>
               <h3 className="text-lg font-semibold text-card-foreground group-hover:text-primary transition-colors line-clamp-2">
-                {hackathon?.title}
+                {hackathon?.title || 'Hackathon Title'}
               </h3>
               <p className="text-sm text-muted-foreground mt-1">
-                by {hackathon?.organizer}
+                by {hackathon?.organizer || 'Organizer'}
               </p>
             </div>
 
@@ -209,13 +234,13 @@ const HackathonCard = ({ hackathon, onBookmark, viewMode = 'grid' }) => {
             {/* Image Section */}
             <div className="relative w-full md:w-48 h-48 md:h-auto overflow-hidden flex-shrink-0">
               <Image
-                src={hackathon?.image}
-                alt={hackathon?.title}
+                src={getImageUrl(hackathon)}
+                alt={hackathon?.title || 'Hackathon'}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />
               <div className="absolute top-3 left-3 flex flex-wrap gap-2">
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(hackathon?.status)}`}>
-                  {hackathon?.status}
+                  {hackathon?.status || 'Open'}
                 </span>
                 {hackathon?.featured && (
                   <span className="px-2 py-1 rounded-full text-xs font-medium bg-accent text-accent-foreground">
@@ -237,10 +262,10 @@ const HackathonCard = ({ hackathon, onBookmark, viewMode = 'grid' }) => {
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1 min-w-0">
                     <h3 className="text-xl font-semibold text-card-foreground group-hover:text-primary transition-colors mb-1 line-clamp-2">
-                      {hackathon?.title}
+                      {hackathon?.title || 'Hackathon Title'}
                     </h3>
                     <p className="text-sm text-muted-foreground mb-2">
-                      by {hackathon?.organizer}
+                      by {hackathon?.organizer || 'Organizer'}
                     </p>
                     <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 text-sm text-muted-foreground space-y-1 sm:space-y-0">
                       <div className="flex items-center space-x-2">
