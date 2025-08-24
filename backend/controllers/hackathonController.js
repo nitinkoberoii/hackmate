@@ -1,5 +1,5 @@
-// backend/controllers/hackathonController.js
 import Hackathon from "../models/Hackathon.js";
+import Image from "../models/Image.js";
 
 // @desc Get all hackathons
 export const getHackathons = async (req, res) => {
@@ -8,6 +8,20 @@ export const getHackathons = async (req, res) => {
     res.json(hackathons);
   } catch (error) {
     res.status(500).json({ message: "Error fetching hackathons", error });
+  }
+};
+
+// --- Controller to get an image by its ID ---
+export const getImage = async (req, res) => {
+  try {
+    const image = await Image.findById(req.params.id);
+    if (!image || !image.data) {
+      return res.status(404).json({ message: "Image not found" });
+    }
+    res.set("Content-Type", image.contentType);
+    res.send(image.data);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching image", error });
   }
 };
 
@@ -26,11 +40,40 @@ export const getHackathonById = async (req, res) => {
 // @desc Create new hackathon
 export const createHackathon = async (req, res) => {
   try {
-    const newHackathon = new Hackathon(req.body);
+    const hackathonData = req.body;
+    let imageId = null;
+
+    if (req.file) {
+      const newImage = new Image({
+        name: req.file.originalname,
+        data: req.file.buffer,
+        contentType: req.file.mimetype,
+      });
+      const savedImage = await newImage.save();
+      imageId = savedImage._id;
+    }
+
+    // --- Parse `teamSize` and `requiredSkills` from FormData ---
+    if (hackathonData.teamSize) {
+      hackathonData.teamSize = JSON.parse(hackathonData.teamSize);
+    }
+    if (hackathonData.requiredSkills) {
+      // The array is sent as a JSON string, so we need to parse it back.
+      hackathonData.requiredSkills = JSON.parse(hackathonData.requiredSkills);
+    }
+
+    const newHackathon = new Hackathon({
+      ...hackathonData,
+      image: imageId,
+    });
+
     await newHackathon.save();
     res.status(201).json(newHackathon);
   } catch (error) {
-    res.status(400).json({ message: "Error creating hackathon", error });
+    console.error("Creation Error:", error);
+    res
+      .status(400)
+      .json({ message: "Error creating hackathon", error: error.message });
   }
 };
 

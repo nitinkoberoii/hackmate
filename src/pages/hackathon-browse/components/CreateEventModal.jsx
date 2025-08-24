@@ -1,31 +1,24 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Icon from '../../../components/AppIcon'; 
 
-// --- MODIFIED: Image Picker is now a fully controlled component ---
+// --- MODIFIED: Simplified Image Picker for file uploads only ---
 const ImagePicker = ({ value, onChange, disabled }) => {
-    const [imageSourceType, setImageSourceType] = useState('upload'); 
     const fileInputRef = useRef(null);
-    const { file, url } = value;
-
-    // The preview is now derived directly from the props, ensuring it resets with the parent state
-    const imagePreview = file ? URL.createObjectURL(file) : url;
+    // Create a preview URL from the file object
+    const imagePreview = value ? URL.createObjectURL(value) : null;
 
     const handleFileChange = (e) => {
-        const newFile = e.target.files[0];
-        if (newFile && newFile.type.startsWith('image/')) {
-            onChange({ file: newFile, url: '' });
+        const file = e.target.files[0];
+        if (file && file.type.startsWith('image/')) {
+            onChange(file); // Pass the file object up
         } else {
-            onChange({ file: null, url: '' });
+            onChange(null);
         }
     };
 
-    const handleUrlChange = (e) => {
-        const newUrl = e.target.value;
-        onChange({ file: null, url: newUrl });
-    };
-
     const handleRemoveImage = () => {
-        onChange({ file: null, url: '' });
+        onChange(null);
+        // Reset the file input so the same file can be selected again
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
@@ -33,47 +26,29 @@ const ImagePicker = ({ value, onChange, disabled }) => {
 
     const triggerFileSelect = () => fileInputRef.current?.click();
 
-    // Effect to switch back to upload tab if URL is cleared from outside
-    useEffect(() => {
-        if (imageSourceType === 'url' && !url && !file) {
-            setImageSourceType('upload');
-        }
-    }, [url, file, imageSourceType]);
-
     return (
         <div>
             <label className="block text-sm font-medium text-foreground mb-2">Hackathon Image</label>
-            <div className="flex items-center gap-2 mb-2">
-                <button type="button" onClick={() => setImageSourceType('upload')} className={`px-3 py-1 text-sm rounded-md ${imageSourceType === 'upload' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`} disabled={disabled}>Upload</button>
-                <button type="button" onClick={() => setImageSourceType('url')} className={`px-3 py-1 text-sm rounded-md ${imageSourceType === 'url' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`} disabled={disabled}>URL</button>
-            </div>
-
             <div className="flex items-center gap-4">
                 <div className="w-24 h-24 rounded-md bg-input border border-border flex items-center justify-center overflow-hidden">
                     {imagePreview ? (
-                        <img src={imagePreview} alt="Hackathon preview" className="w-full h-full object-cover" onError={(e) => e.target.style.display='none'} onLoad={(e) => e.target.style.display='block'}/>
+                        <img src={imagePreview} alt="Hackathon preview" className="w-full h-full object-cover" />
                     ) : (
                         <Icon name="Image" size={32} className="text-muted-foreground" />
                     )}
                 </div>
                 <div className="flex-grow">
-                    {imageSourceType === 'upload' ? (
-                        <>
-                            <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/png, image/jpeg, image/webp" className="hidden" disabled={disabled} />
-                            {file ? (
-                                <div className="flex items-center gap-2">
-                                    <button type="button" onClick={() => window.open(imagePreview, '_blank')} className="text-sm text-primary hover:underline" disabled={disabled}>View</button>
-                                    <button type="button" onClick={triggerFileSelect} className="text-sm text-primary hover:underline" disabled={disabled}>Change</button>
-                                    <button type="button" onClick={handleRemoveImage} className="text-sm text-destructive hover:underline" disabled={disabled}>Remove</button>
-                                </div>
-                            ) : (
-                                <button type="button" onClick={triggerFileSelect} disabled={disabled} className="px-4 py-2 rounded-md text-sm font-semibold bg-background border border-border text-foreground hover:bg-muted transition-colors disabled:opacity-50">
-                                    Select Image
-                                </button>
-                            )}
-                        </>
+                    <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/png, image/jpeg, image/webp" className="hidden" disabled={disabled} />
+                    {imagePreview ? (
+                        <div className="flex items-center gap-2">
+                            <button type="button" onClick={() => window.open(imagePreview, '_blank')} className="text-sm text-primary hover:underline" disabled={disabled}>View</button>
+                            <button type="button" onClick={triggerFileSelect} className="text-sm text-primary hover:underline" disabled={disabled}>Change</button>
+                            <button type="button" onClick={handleRemoveImage} className="text-sm text-destructive hover:underline" disabled={disabled}>Remove</button>
+                        </div>
                     ) : (
-                        <FormInput id="imageUrl" type="url" value={url} onChange={handleUrlChange} placeholder="https://example.com/image.png" disabled={disabled} />
+                        <button type="button" onClick={triggerFileSelect} disabled={disabled} className="px-4 py-2 rounded-md text-sm font-semibold bg-background border border-border text-foreground hover:bg-muted transition-colors disabled:opacity-50">
+                            Select Image
+                        </button>
                     )}
                 </div>
             </div>
@@ -115,7 +90,7 @@ const FormSelect = ({ id, label, value, onChange, required = false, children, er
             onChange={onChange}
             disabled={disabled}
             className={`w-full px-3 py-2 bg-input border ${error ? 'border-destructive' : 'border-border'} rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors appearance-none bg-no-repeat bg-right pr-8 disabled:opacity-50`}
-            style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.5rem center', backgroundSize: '1.5em 1.5em' }}
+            style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.5rem center', backgroundSize: '1.5em 1.5em' }}
         >
             {children}
         </select>
@@ -123,7 +98,6 @@ const FormSelect = ({ id, label, value, onChange, required = false, children, er
     </div>
 );
 
-// --- NEW: Define the initial state outside the component ---
 const initialFormData = {
     title: '',
     organizer: '',
@@ -138,27 +112,23 @@ const initialFormData = {
     maxParticipants: '',
     requiredSkills: [],
 };
-const initialImageInput = { file: null, url: '' };
-
 
 const CreateEventModal = ({ isOpen, onClose, onHackathonCreated, apiEndpoint }) => {
   const [formData, setFormData] = useState(initialFormData);
-  const [imageInput, setImageInput] = useState(initialImageInput);
+  const [imageFile, setImageFile] = useState(null);
   const [currentSkill, setCurrentSkill] = useState('');
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [apiError, setApiError] = useState(null);
 
-  // --- MODIFIED: This effect now resets the form whenever the modal opens ---
   useEffect(() => {
     const handleEsc = (event) => {
         if (event.keyCode === 27) onClose();
     };
 
     if (isOpen) {
-        // Reset all states to their initial values
         setFormData(initialFormData);
-        setImageInput(initialImageInput);
+        setImageFile(null);
         setCurrentSkill('');
         setErrors({});
         setApiError(null);
@@ -220,39 +190,37 @@ const CreateEventModal = ({ isOpen, onClose, onHackathonCreated, apiEndpoint }) 
     if (!validateForm()) return;
 
     setIsSubmitting(true);
+
+    const start = new Date(formData.startDate);
+    const end = new Date(formData.endDate);
+    let duration = '';
+    if (!isNaN(start) && !isNaN(end) && end >= start) {
+        const diffTime = end.getTime() - start.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        const diffHours = Math.ceil(diffTime / (1000 * 60 * 60));
+        if (diffHours < 24) duration = `${diffHours} hour${diffHours > 1 ? 's' : ''}`;
+        else duration = `${diffDays} day${diffDays > 1 ? 's' : ''}`;
+    }
+
+    const submissionData = new FormData();
+    if (imageFile) {
+        submissionData.append('image', imageFile);
+    }
+    
+    Object.keys(formData).forEach(key => {
+        const value = formData[key];
+        if (typeof value === 'object' && value !== null) {
+            submissionData.append(key, JSON.stringify(value));
+        } else {
+            submissionData.append(key, value);
+        }
+    });
+    submissionData.append('duration', duration);
+
     try {
-      let imageUrl = imageInput.url;
-      
-      if (imageInput.file) {
-        // In a real app, you would upload imageInput.file to a service (e.g., S3, Cloudinary)
-        // and get a URL back.
-        // const uploadedUrl = await uploadImageService(imageInput.file);
-        // imageUrl = uploadedUrl;
-        console.log("Simulating image upload for:", imageInput.file.name);
-      }
-
-      const start = new Date(formData.startDate);
-      const end = new Date(formData.endDate);
-      let duration = '';
-      if (!isNaN(start) && !isNaN(end) && end >= start) {
-          const diffTime = end.getTime() - start.getTime();
-          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-          const diffHours = Math.ceil(diffTime / (1000 * 60 * 60));
-          if (diffHours < 24) duration = `${diffHours} hour${diffHours > 1 ? 's' : ''}`;
-          else duration = `${diffDays} day${diffDays > 1 ? 's' : ''}`;
-      }
-
-      const payload = {
-        ...formData,
-        image: imageUrl,
-        duration,
-        maxParticipants: Number(formData.maxParticipants),
-      };
-
       const response = await fetch(apiEndpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: submissionData,
       });
 
       if (!response.ok) {
@@ -263,6 +231,7 @@ const CreateEventModal = ({ isOpen, onClose, onHackathonCreated, apiEndpoint }) 
       onHackathonCreated(); 
       onClose(); 
 
+    // --- MODIFIED: Corrected the catch block syntax ---
     } catch (error) {
       console.error('Submission error:', error);
       setApiError(error.message);
@@ -303,7 +272,7 @@ const CreateEventModal = ({ isOpen, onClose, onHackathonCreated, apiEndpoint }) 
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <ImagePicker value={imageInput} onChange={setImageInput} disabled={isSubmitting} />
+                <ImagePicker value={imageFile} onChange={setImageFile} disabled={isSubmitting} />
                 <FormInput id="theme" label="Theme" value={formData.theme} onChange={handleChange} placeholder="e.g., FinTech, Healthcare, AI" disabled={isSubmitting} />
               </div>
               

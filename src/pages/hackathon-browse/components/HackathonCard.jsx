@@ -11,7 +11,6 @@ const HackathonCard = ({ hackathon, onBookmark, viewMode = 'grid' }) => {
     e?.preventDefault();
     e?.stopPropagation();
     setIsBookmarked(!isBookmarked);
-    // Handle both MongoDB ObjectId and regular id
     const hackathonId = hackathon?._id || hackathon?.id;
     onBookmark(hackathonId, !isBookmarked);
   };
@@ -33,7 +32,6 @@ const HackathonCard = ({ hackathon, onBookmark, viewMode = 'grid' }) => {
 
   const formatDate = (dateString) => {
     if (!dateString) return 'TBD';
-    
     try {
       return new Date(dateString)?.toLocaleDateString('en-US', {
         month: 'short',
@@ -46,16 +44,16 @@ const HackathonCard = ({ hackathon, onBookmark, viewMode = 'grid' }) => {
     }
   };
 
-  // Get default image if none provided
+  // --- MODIFIED: This function now constructs the correct API URL for the image ---
   const getImageUrl = (hackathon) => {
     if (hackathon?.image) {
-      return hackathon.image;
+      // The image field is an ID, so we point to our backend's image-serving route
+      return `http://localhost:5000/api/hackathons/image/${hackathon.image}`;
     }
-    // Return a default placeholder image
-    return 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=400&h=300&fit=crop';
+    // Return a default placeholder if no image is associated
+    return `https://placehold.co/400x300/1e293b/ffffff?text=${hackathon?.title?.split(' ').join('+') || 'Hackathon'}`;
   };
 
-  // Get hackathon ID (handle both MongoDB ObjectId and regular id)
   const getHackathonId = (hackathon) => {
     return hackathon?._id || hackathon?.id;
   };
@@ -113,7 +111,6 @@ const HackathonCard = ({ hackathon, onBookmark, viewMode = 'grid' }) => {
 
           {/* Content */}
           <div className="p-4 space-y-4 flex-1 flex flex-col">
-            {/* Title and Organization */}
             <div>
               <h3 className="text-lg font-semibold text-card-foreground group-hover:text-primary transition-colors line-clamp-2">
                 {hackathon?.title || 'Hackathon Title'}
@@ -123,7 +120,6 @@ const HackathonCard = ({ hackathon, onBookmark, viewMode = 'grid' }) => {
               </p>
             </div>
 
-            {/* Theme and Description */}
             <div>
               <div className="flex items-center space-x-2 mb-2">
                 <Icon name="Target" size={16} className="text-accent" />
@@ -134,7 +130,6 @@ const HackathonCard = ({ hackathon, onBookmark, viewMode = 'grid' }) => {
               </p>
             </div>
 
-            {/* Stats Grid */}
             <div className="grid grid-cols-2 gap-4">
               <div className="flex items-center space-x-2">
                 <Icon name="Trophy" size={16} className="text-warning" />
@@ -170,7 +165,6 @@ const HackathonCard = ({ hackathon, onBookmark, viewMode = 'grid' }) => {
               </div>
             </div>
 
-            {/* Skills Tags */}
             <div>
               <div className="flex flex-wrap gap-2">
                 {hackathon?.requiredSkills?.slice(0, 4)?.map((skill, index) => (
@@ -189,7 +183,6 @@ const HackathonCard = ({ hackathon, onBookmark, viewMode = 'grid' }) => {
               </div>
             </div>
 
-            {/* Compatibility Score */}
             {hackathon?.compatibilityScore && (
               <div className="flex items-center justify-between pt-2 border-t border-border">
                 <div className="flex items-center space-x-2">
@@ -213,7 +206,6 @@ const HackathonCard = ({ hackathon, onBookmark, viewMode = 'grid' }) => {
               </div>
             )}
 
-            {/* Action Button */}
             <div className="pt-2 mt-auto">
               <Button
                 variant="outline"
@@ -231,7 +223,6 @@ const HackathonCard = ({ hackathon, onBookmark, viewMode = 'grid' }) => {
         // List View Layout
         <div className="bg-card border border-border rounded-xl shadow-elevation-1 hover:shadow-elevation-2 transition-all duration-200 overflow-hidden">
           <div className="flex flex-col md:flex-row">
-            {/* Image Section */}
             <div className="relative w-full md:w-48 h-48 md:h-auto overflow-hidden flex-shrink-0">
               <Image
                 src={getImageUrl(hackathon)}
@@ -255,10 +246,8 @@ const HackathonCard = ({ hackathon, onBookmark, viewMode = 'grid' }) => {
               </div>
             </div>
 
-            {/* Content Section */}
             <div className="flex-1 p-4 md:p-6">
               <div className="flex flex-col h-full">
-                {/* Header with Bookmark */}
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1 min-w-0">
                     <h3 className="text-xl font-semibold text-card-foreground group-hover:text-primary transition-colors mb-1 line-clamp-2">
@@ -290,7 +279,6 @@ const HackathonCard = ({ hackathon, onBookmark, viewMode = 'grid' }) => {
                   </button>
                 </div>
 
-                {/* Theme and Description */}
                 <div className="mb-4">
                   <div className="flex items-center space-x-2 mb-2">
                     <Icon name="Target" size={16} className="text-accent" />
@@ -301,7 +289,6 @@ const HackathonCard = ({ hackathon, onBookmark, viewMode = 'grid' }) => {
                   </p>
                 </div>
 
-                {/* Stats Row */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                   <div className="flex items-center space-x-2">
                     <Icon name="Trophy" size={16} className="text-warning" />
@@ -339,7 +326,6 @@ const HackathonCard = ({ hackathon, onBookmark, viewMode = 'grid' }) => {
                   )}
                 </div>
 
-                {/* Skills Tags */}
                 <div className="mb-4">
                   <div className="flex flex-wrap gap-2">
                     {hackathon?.requiredSkills?.map((skill, index) => (
@@ -353,7 +339,6 @@ const HackathonCard = ({ hackathon, onBookmark, viewMode = 'grid' }) => {
                   </div>
                 </div>
 
-                {/* Action Button */}
                 <div className="mt-auto">
                   <Button
                     variant="outline"
