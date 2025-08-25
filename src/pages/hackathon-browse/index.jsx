@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import Header from '../../components/ui/Header';
 import TabNavigation from '../../components/ui/TabNavigation';
@@ -29,14 +29,17 @@ const HackathonBrowse = () => {
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [activeFilters, setActiveFilters] = useState({});
   const [currentSort, setCurrentSort] = useState('relevance');
-  const [hackathons, setHackathons] = useState([]); 
+  
+  // --- MODIFIED: Renamed to `allHackathons` to represent the master list ---
+  const [allHackathons, setAllHackathons] = useState([]); 
   const [featuredHackathons, setFeaturedHackathons] = useState([]);
+  const [displayedHackathons, setDisplayedHackathons] = useState([]);
+  
   const [isLoading, setIsLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);
   const [viewMode, setViewMode] = useState('grid');
   const [error, setError] = useState(null);
-  const [displayedHackathons, setDisplayedHackathons] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Mock user data
@@ -57,75 +60,91 @@ const HackathonBrowse = () => {
     teams: 2
   };
 
-  // Mock search suggestions
-  const mockSearchSuggestions = [
-    { text: "AI Healthcare", type: "theme", description: "Healthcare technology hackathons", count: 12 },
-    { text: "React", type: "skill", description: "JavaScript library", count: 45 },
-    { text: "TechForGood Foundation", type: "organizer", description: "Non-profit tech organization", count: 8 },
-    { text: "Climate Tech Challenge", type: "hackathon", description: "Environmental technology", count: 3 },
-    { text: "Blockchain", type: "skill", description: "Distributed ledger technology", count: 23 }
-  ];
-
-  // --- MODIFIED: Removed `page` from the dependency array to prevent re-fetching on "Load More" ---
   const fetchHackathons = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-    
     try {
       const response = await fetch(API_ENDPOINT);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const data = await response.json();
-      
-      const featured = data.filter(hackathon => hackathon.featured === true);
-      setFeaturedHackathons(featured);
-      
-      // Sort by creation date to show newest first
+      const featured = data.filter(h => h.featured === true);
       const sortedData = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      setHackathons(sortedData);
-      
-      setDisplayedHackathons(sortedData.slice(0, HACKATHONS_PER_PAGE));
-      setPage(1); // Reset page to 1 on every full fetch
-      setHasMore(sortedData.length > HACKATHONS_PER_PAGE);
-
+      setFeaturedHackathons(featured);
+      setAllHackathons(sortedData);
     } catch (error) {
       console.error('Error fetching hackathons:', error);
       setError('Failed to load hackathons. Please try again later.');
-      
       setFeaturedHackathons([]);
-      setHackathons([]);
-      setDisplayedHackathons([]);
+      setAllHackathons([]);
     } finally {
       setIsLoading(false);
     }
   }, [API_ENDPOINT]);
 
-  // Initialize data
   useEffect(() => {
     fetchHackathons();
   }, [fetchHackathons]);
 
-  // Handle search
+  // --- MODIFIED: `handleSearch` now generates real-time suggestions and sets the search query ---
   const handleSearch = useCallback((query) => {
     setSearchQuery(query);
-    setIsSearchLoading(true);
-    
-    setTimeout(() => {
-      if (query?.length > 0) {
-        const filtered = mockSearchSuggestions?.filter(suggestion =>
-          suggestion?.text?.toLowerCase()?.includes(query?.toLowerCase())
-        );
-        setSearchSuggestions(filtered);
-      } else {
-        setSearchSuggestions([]);
-      }
-      setIsSearchLoading(false);
-    }, 300);
-  }, []);
+    setPage(1); // Reset pagination on every new search query
 
-  // Handle filter changes
+    if (!query) {
+      setSearchSuggestions([]);
+      return;
+    }
+
+    const lowercasedQuery = query.toLowerCase();
+    const suggestionsSet = new Map();
+
+    allHackathons.forEach(h => {
+      // Match Title
+      if (h.title?.toLowerCase().includes(lowercasedQuery) && !suggestionsSet.has(h.title)) {
+        suggestionsSet.set(h.title, { text: h.title, type: 'hackathon', description: `by ${h.organizer}` });
+      }
+      // Match Theme
+      if (h.theme?.toLowerCase().includes(lowercasedQuery) && !suggestionsSet.has(h.theme)) {
+        suggestionsSet.set(h.theme, { text: h.theme, type: 'theme', description: 'Theme' });
+      }
+      // Match Organizer
+      if (h.organizer?.toLowerCase().includes(lowercasedQuery) && !suggestionsSet.has(h.organizer)) {
+        suggestionsSet.set(h.organizer, { text: h.organizer, type: 'organizer', description: 'Organizer' });
+      }
+      // Match Skills
+      h.requiredSkills?.forEach(skill => {
+        if (skill.toLowerCase().includes(lowercasedQuery) && !suggestionsSet.has(skill)) {
+          suggestionsSet.set(skill, { text: skill, type: 'skill', description: 'Skill' });
+        }
+      });
+    });
+
+    setSearchSuggestions(Array.from(suggestionsSet.values()).slice(0, 7));
+  }, [allHackathons]);
+
+  // --- NEW: `useMemo` hook to efficiently filter hackathons based on the search query ---
+  const filteredHackathons = useMemo(() => {
+    const lowercasedQuery = searchQuery.toLowerCase();
+    if (!lowercasedQuery) {
+      return allHackathons;
+    }
+    return allHackathons.filter(hackathon => {
+      return (
+        hackathon.title?.toLowerCase().includes(lowercasedQuery) ||
+        hackathon.organizer?.toLowerCase().includes(lowercasedQuery) ||
+        hackathon.theme?.toLowerCase().includes(lowercasedQuery) ||
+        hackathon.description?.toLowerCase().includes(lowercasedQuery) ||
+        hackathon.requiredSkills?.some(skill => skill.toLowerCase().includes(lowercasedQuery))
+      );
+    });
+  }, [searchQuery, allHackathons]);
+
+  // --- NEW: This effect now only handles pagination based on the already filtered list ---
+  useEffect(() => {
+    setDisplayedHackathons(filteredHackathons.slice(0, page * HACKATHONS_PER_PAGE));
+    setHasMore(filteredHackathons.length > page * HACKATHONS_PER_PAGE);
+  }, [filteredHackathons, page]);
+
   const handleFilterChange = (keyOrFilters, value) => {
     if (typeof keyOrFilters === 'object' && keyOrFilters !== null) {
       setActiveFilters(keyOrFilters);
@@ -138,32 +157,18 @@ const HackathonBrowse = () => {
     setActiveFilters({});
   };
 
-  // Handle sort change
   const handleSortChange = (sortValue) => {
     setCurrentSort(sortValue);
   };
 
   const handleBookmark = (hackathonId, isBookmarked) => {
     const updater = (hackathonsList) =>
-      hackathonsList?.map(hackathon =>
-        hackathon?._id === hackathonId // Use _id from MongoDB
-          ? { ...hackathon, isBookmarked }
-          : hackathon
-      );
-    setHackathons(updater);
-    setDisplayedHackathons(updater);
+      hackathonsList?.map(h => h?._id === hackathonId ? { ...h, isBookmarked } : h);
+    setAllHackathons(updater);
   };
 
   const handleLoadMore = () => {
-    const nextPage = page + 1;
-    const nextBatch = hackathons.slice(page * HACKATHONS_PER_PAGE, nextPage * HACKATHONS_PER_PAGE);
-    
-    setDisplayedHackathons(prev => [...prev, ...nextBatch]);
-    setPage(nextPage);
-
-    if ((nextPage * HACKATHONS_PER_PAGE) >= hackathons.length) {
-      setHasMore(false);
-    }
+    setPage(prevPage => prevPage + 1);
   };
 
   const handleViewModeToggle = () => {
@@ -177,38 +182,21 @@ const HackathonBrowse = () => {
   return (
     <>
       <div className="min-h-screen bg-background">
-        {/* Header */}
         <Header user={mockUser} notifications={mockNotifications} />
-        {/* Main Content */}
         <main className="pt-16 md:pt-18 pb-20 md:pb-8">
           <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
-            {/* Page Header */}
             <div className="mb-8">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h1 className="text-2xl md:text-3xl font-bold text-foreground">
-                    Discover Hackathons
-                  </h1>
-                  <p className="text-muted-foreground mt-1">
-                    Find the perfect hackathon that matches your skills and interests
-                  </p>
+                  <h1 className="text-2xl md:text-3xl font-bold text-foreground">Discover Hackathons</h1>
+                  <p className="text-muted-foreground mt-1">Find the perfect hackathon that matches your skills and interests</p>
                 </div>
                 <div className="hidden md:flex items-center space-x-3">
-                  <Button variant="outline" iconName="BookmarkPlus" iconPosition="left">
-                    Saved Events
-                  </Button>
-                  <Button
-                    variant="default"
-                    iconName="Plus"
-                    iconPosition="left"
-                    onClick={() => setIsModalOpen(true)}
-                  >
-                    Create Event
-                  </Button>
+                  <Button variant="outline" iconName="BookmarkPlus" iconPosition="left">Saved Events</Button>
+                  <Button variant="default" iconName="Plus" iconPosition="left" onClick={() => setIsModalOpen(true)}>Create Event</Button>
                 </div>
               </div>
-
-              {/* Search Bar */}
+              
               <SearchBar
                 onSearch={handleSearch}
                 suggestions={searchSuggestions}
@@ -216,7 +204,6 @@ const HackathonBrowse = () => {
               />
             </div>
 
-            {/* Error State */}
             {error && (
               <div className="mb-8 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
                 <div className="flex items-center justify-between">
@@ -224,153 +211,91 @@ const HackathonBrowse = () => {
                     <Icon name="AlertCircle" size={20} className="text-destructive" />
                     <span className="text-destructive font-medium">{error}</span>
                   </div>
-                  <Button variant="outline" size="sm" onClick={handleRetry} iconName="RotateCcw" iconPosition="left">
-                    Retry
-                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleRetry} iconName="RotateCcw" iconPosition="left">Retry</Button>
                 </div>
               </div>
             )}
 
-            {/* Featured Hackathons */}
             {!isLoading && !error && featuredHackathons?.length > 0 && (
               <FeaturedCarousel featuredHackathons={featuredHackathons} />
             )}
 
-            {/* Filters and Sort */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
               <div className="flex-1">
-                <FilterChips
-                  activeFilters={activeFilters}
-                  onFilterChange={handleFilterChange}
-                  onClearAll={handleClearAllFilters}
-                />
+                <FilterChips activeFilters={activeFilters} onFilterChange={handleFilterChange} onClearAll={handleClearAllFilters} />
               </div>
             </div>
 
-            {/* Main Content Grid */}
             <div className="flex gap-8">
-              {/* Hackathons Grid */}
               <div className="flex-1">
-                {/* Results Header */}
                 <div className="flex items-center justify-between mb-6">
                   <div>
                     <h2 className="text-xl font-semibold text-foreground">
                       {searchQuery ? `Results for "${searchQuery}"` : 'All Hackathons'}
                     </h2>
-                    <p className="text-sm text-muted-foreground">
-                      {hackathons?.length} hackathons found
-                    </p>
+                    <p className="text-sm text-muted-foreground">{filteredHackathons.length} hackathons found</p>
                   </div>
                   <div className="flex items-center space-x-3">
-                    <SortDropdown
-                      currentSort={currentSort}
-                      onSortChange={handleSortChange}
-                    />
-                    <button
-                      onClick={handleViewModeToggle}
-                      className="flex items-center space-x-2 hover:text-foreground transition-colors cursor-pointer px-3 py-2 rounded-lg hover:bg-muted/50 active:bg-muted"
-                      title={`Switch to ${viewMode === 'grid' ? 'list' : 'grid'} view`}
-                    >
+                    <SortDropdown currentSort={currentSort} onSortChange={handleSortChange} />
+                    <button onClick={handleViewModeToggle} className="flex items-center space-x-2 hover:text-foreground transition-colors cursor-pointer px-3 py-2 rounded-lg hover:bg-muted/50 active:bg-muted" title={`Switch to ${viewMode === 'grid' ? 'list' : 'grid'} view`}>
                       <Icon name={viewMode === 'grid' ? "List" : "Grid3X3"} size={16} />
                       <span>{viewMode === 'grid' ? 'List View' : 'Grid View'}</span>
                     </button>
                   </div>
                 </div>
 
-                {/* Initial Loading State */}
                 {isLoading && <LoadingGrid count={6} />}
 
-                {/* Hackathons Display */}
-                {!isLoading && !error && displayedHackathons?.length > 0 && (
+                {!isLoading && !error && displayedHackathons.length > 0 && (
                   <div className="transition-all duration-300 ease-in-out">
-                    {/* Grid View */}
-                    {viewMode === 'grid' && (
+                    {viewMode === 'grid' ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                        {displayedHackathons?.map((hackathon) => (
-                          <HackathonCard
-                            key={hackathon?._id} // Use _id from MongoDB
-                            hackathon={hackathon}
-                            onBookmark={handleBookmark}
-                            viewMode="grid"
-                          />
+                        {displayedHackathons.map((hackathon) => (
+                          <HackathonCard key={hackathon._id} hackathon={hackathon} onBookmark={handleBookmark} viewMode="grid" />
                         ))}
                       </div>
-                    )}
-                    
-                    {/* List View */}
-                    {viewMode === 'list' && (
+                    ) : (
                       <div className="space-y-4 mb-8">
-                        {displayedHackathons?.map((hackathon) => (
-                          <HackathonCard
-                            key={hackathon?._id} // Use _id from MongoDB
-                            hackathon={hackathon}
-                            onBookmark={handleBookmark}
-                            viewMode="list"
-                          />
+                        {displayedHackathons.map((hackathon) => (
+                          <HackathonCard key={hackathon._id} hackathon={hackathon} onBookmark={handleBookmark} viewMode="list" />
                         ))}
                       </div>
                     )}
                   </div>
                 )}
 
-                {/* Load More Button */}
                 {!isLoading && !error && hasMore && (
                   <div className="text-center">
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      onClick={handleLoadMore}
-                      iconName="ChevronDown"
-                      iconPosition="right"
-                    >
+                    <Button variant="outline" size="lg" onClick={handleLoadMore} iconName="ChevronDown" iconPosition="right">
                       Load More Hackathons
                     </Button>
                   </div>
                 )}
 
-                {/* No Results */}
-                {!isLoading && !error && hackathons?.length === 0 && (
+                {!isLoading && !error && filteredHackathons.length === 0 && (
                   <div className="text-center py-12">
                     <Icon name="SearchX" size={48} className="text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-foreground mb-2">
-                      No hackathons found
-                    </h3>
+                    <h3 className="text-lg font-semibold text-foreground mb-2">No hackathons found</h3>
                     <p className="text-muted-foreground mb-6">
-                      No hackathons are currently available. Please check back later.
+                      {searchQuery ? "Try adjusting your search query." : "No hackathons are currently available."}
                     </p>
-                    <Button
-                      variant="outline"
-                      onClick={handleRetry}
-                      iconName="RotateCcw"
-                      iconPosition="left"
-                    >
-                      Refresh
-                    </Button>
+                    <Button variant="outline" onClick={handleRetry} iconName="RotateCcw" iconPosition="left">Refresh</Button>
                   </div>
                 )}
 
-                {/* End of Results */}
-                {!hasMore && hackathons?.length > HACKATHONS_PER_PAGE && (
+                {!hasMore && filteredHackathons.length > 0 && (
                   <div className="text-center py-8 border-t border-border mt-8">
-                    <p className="text-muted-foreground">
-                      You've reached the end of the results
-                    </p>
+                    <p className="text-muted-foreground">You've reached the end of the results</p>
                   </div>
                 )}
               </div>
             </div>
           </div>
         </main>
-        {/* Bottom Tab Navigation */}
         <TabNavigation notifications={mockNotifications} />
       </div>
 
-      <CreateEventModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        onHackathonCreated={fetchHackathons}
-        apiEndpoint={API_ENDPOINT}
-      />
+      <CreateEventModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onHackathonCreated={fetchHackathons} apiEndpoint={API_ENDPOINT} />
     </>
   );
 };
