@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import hackathonRoutes from "./routes/hackathonRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 
 dotenv.config();
 const app = express();
@@ -26,3 +27,4 @@ mongoose
 
 // Routes
 app.use("/api/hackathons", hackathonRoutes);
+app.use("/api/users", userRoutes);
