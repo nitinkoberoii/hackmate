@@ -1,11 +1,15 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import Icon from '../AppIcon';
 import Image from '../AppImage';
+import { AuthContext } from '../../context/AuthContext.jsx';
 
 const UserAvatarDropdown = ({ user }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const { logout } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
@@ -70,9 +74,10 @@ const UserAvatarDropdown = ({ user }) => {
     {
       label: 'Sign Out',
       icon: 'LogOut',
-      action: () => {
-        // Handle logout
+      action: async () => {
+        await logout();
         closeDropdown();
+        navigate('/sign-in');
       },
       variant: 'destructive'
     }

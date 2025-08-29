@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Header from '../../components/ui/Header';
+import { AuthContext } from '../../context/AuthContext.jsx';
 import TabNavigation from '../../components/ui/TabNavigation';
 import Icon from '../../components/AppIcon';
 import TeamHeader from './components/TeamHeader';
@@ -14,16 +15,7 @@ const TeamDetail = () => {
   const { teamId } = useParams();
   const [activeTab, setActiveTab] = useState('overview');
 
-  // Mock current user data
-  const currentUser = {
-    id: 1,
-    name: 'John Smith',
-    email: 'john.smith@example.com',
-    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
-    role: 'leader',
-    isOnline: true,
-    githubConnected: true
-  };
+  const { user: currentUser } = useContext(AuthContext);
 
   // Mock team data
   const team = {

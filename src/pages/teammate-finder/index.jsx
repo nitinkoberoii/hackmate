@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import Header from '../../components/ui/Header';
+import { AuthContext } from '../../context/AuthContext.jsx';
 import TabNavigation from '../../components/ui/TabNavigation';
 import SearchHeader from './components/SearchHeader';
 import FilterPanel from './components/FilterPanel';
@@ -24,15 +25,7 @@ const TeammateFinder = () => {
     isAvailableNow: false
   });
 
-  // Mock user data
-  const currentUser = {
-    id: 'user-1',
-    name: 'Alex Johnson',
-    email: 'alex.johnson@email.com',
-    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face',
-    isOnline: true,
-    githubConnected: true
-  };
+  const { user: currentUser } = useContext(AuthContext);
 
   // Mock notifications
   const notifications = {

@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../components/ui/Header';
+import { AuthContext } from '../../context/AuthContext.jsx';
 import TabNavigation from '../../components/ui/TabNavigation';
 import QuestionCard from './components/QuestionCard';
 import ProgressBar from './components/ProgressBar';
@@ -19,15 +20,7 @@ const SkillAssessmentQuiz = () => {
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [startTime] = useState(Date.now());
 
-  // Mock user data
-  const mockUser = {
-    id: 1,
-    name: "Alex Johnson",
-    email: "alex.johnson@email.com",
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
-    isOnline: true,
-    githubConnected: false
-  };
+  const { user: mockUser } = useContext(AuthContext);
 
   // Mock notifications
   const mockNotifications = {

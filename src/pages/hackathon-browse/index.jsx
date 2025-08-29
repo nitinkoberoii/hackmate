@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import Header from '../../components/ui/Header';
+import { useContext } from 'react';
+import { AuthContext } from '../../context/AuthContext.jsx';
 import TabNavigation from '../../components/ui/TabNavigation';
 import Icon from '../../components/AppIcon';
 import Button from '../../components/ui/Button';
@@ -42,15 +44,7 @@ const HackathonBrowse = () => {
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Mock user data
-  const mockUser = {
-    id: 1,
-    name: "Alex Johnson",
-    email: "alex.johnson@email.com",
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
-    isOnline: true,
-    githubConnected: true
-  };
+  const { user } = useContext(AuthContext);
 
   // Mock notifications
   const mockNotifications = {
@@ -182,7 +176,7 @@ const HackathonBrowse = () => {
   return (
     <>
       <div className="min-h-screen bg-background">
-        <Header user={mockUser} notifications={mockNotifications} />
+        <Header user={user} notifications={mockNotifications} />
         <main className="pt-16 md:pt-18 pb-20 md:pb-8">
           <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
             <div className="mb-8">

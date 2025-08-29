@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '../../components/ui/Header';
+import { AuthContext } from '../../context/AuthContext.jsx';
 import TabNavigation from '../../components/ui/TabNavigation';
 import Icon from '../../components/AppIcon';
 import ActiveHackathonCard from './components/ActiveHackathonCard';
@@ -22,21 +23,7 @@ const UserDashboard = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // Mock user data
-  const user = {
-    id: 1,
-    name: "Alex Johnson",
-    email: "alex.johnson@email.com",
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
-    role: "participant",
-    isOnline: true,
-    githubConnected: true,
-    hackathonsJoined: 12,
-    teamsFormed: 8,
-    skillsEndorsed: 24,
-    winRate: 33,
-    skills: ["React", "Node.js", "Python", "UI/UX", "Machine Learning"]
-  };
+  const { user } = useContext(AuthContext);
 
   // Mock active hackathons
   const activeHackathons = [

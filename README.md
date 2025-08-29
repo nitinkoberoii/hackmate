@@ -47,6 +47,10 @@ A comprehensive hackathon management platform that connects developers, facilita
 - **MongoDB** - NoSQL database (via Mongoose)
 - **RESTful API** - Clean API architecture
 
+### Authentication
+
+- **JWT + httpOnly cookies** for secure authentication and session management
+
 ## 📋 Prerequisites
 
 - **Node.js** (v16.x or higher)
@@ -82,13 +86,14 @@ cd ..
 
 ### 3. Environment Setup
 
-Create a `.env` file in the backend directory:
+Create a `.env` file in the backend directory with:
 
-```bash
-cd backend
-# Create .env file with your MongoDB connection string
-echo "MONGODB_URI=mongodb://localhost:27017/hackmate" > .env
-cd ..
+```
+PORT=5000
+MONGO_URI=mongodb://localhost:27017/hackmate
+JWT_SECRET=replace-with-a-long-random-string
+CORS_ORIGIN=http://localhost:5173
+NODE_ENV=development
 ```
 
 ### 4. Start the Backend Server
@@ -101,6 +106,15 @@ node server.js
 ```
 
 **Backend Server**: http://localhost:5000
+
+### Auth Endpoints
+
+```
+POST   /api/auth/register   # name,email,password → set cookie
+POST   /api/auth/login      # email,password → set cookie
+GET    /api/auth/me         # returns current user (auth required)
+POST   /api/auth/logout     # clears cookie (auth required)
+```
 
 ### 5. Start the Frontend Development Server
 
